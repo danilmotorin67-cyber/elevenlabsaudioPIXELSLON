@@ -19,6 +19,14 @@ OUT = os.path.join(ROOT, "work", "transmutatio", "audio", "incoming")
 FIRST = ["music_base_loop", "merge_fire", "merge_ice", "merge_poison", "merge_note_c5", "stone_birth"]
 API = "https://api.elevenlabs.io/v1"
 
+# Sound Effects API accepts at most 450 characters; these doc prompts are longer, so use trimmed versions.
+SHORT = {
+    "stone_birth": "One rare philosopher stone creation for a fantasy alchemy game. A compact inward pull of shimmering energy, a warm rising crystal resonance, then one luminous rounded impact around one second and a beautiful high crystal bloom in A minor, with a delicate two-second sparkling decay. Awe and warmth, controlled bass, smooth treble. No destructive blast, braam, choir, voices, coin shower or music.",
+    "bonus_trigger": "Fantasy alchemy bonus activation stinger in A minor. A compact furnace ignition rises into a playful ascending celesta-and-dulcimer figure with light pizzicato strings and one soft frame-drum accent, ending on a bright suspended magical shimmer. Excited discovery, warm fire, controlled celebration. Clean short tail. No vocals, announcer, brass fanfare, EDM drop or coin rain.",
+    "win_mega": "Four-and-a-half-second fantasy alchemy mega-win fanfare in A minor. Bright celesta and dulcimer play a rising two-part motif over lively pizzicato strings, warm bass and two light frame-drum accents, ending in a wide glowing crystal flourish. Fuller than a small win, rounded treble, controlled bass, clean decisive ending. No voice, choir, cinematic brass, rock drums or coin avalanche.",
+    "win_epic": "Six-second fantasy alchemy epic-win fanfare in A minor, the discovery of a legendary philosopher stone. A short celesta-and-dulcimer buildup opens into soaring warm strings, bright crystal accents, rounded bass and tasteful frame drums. Main triumphant arrival near the middle, then a luminous final chord and clean sparkling decay. Grand yet whimsical, smooth treble. No voice, choir, braam, aggressive brass or coin avalanche.",
+}
+
 
 def group(name):
     if name.startswith("music_"): return "music"
@@ -37,6 +45,8 @@ def parse():
         name, kind, secs, loop, prompt = m.groups()
         g = "optional" if name in ("voice_aurelius_match", "voice_aurelius_cheer", "voice_aurelius_wonder", "char_aurelius_cloth") else group(name)
         items.append(dict(name=name, kind=kind, secs=float(secs), loop=loop == "ON", prompt=prompt.strip(), group=g))
+    for i in items:
+        if i["name"] in SHORT: i["prompt"] = SHORT[i["name"]]
     return items
 
 
@@ -65,7 +75,7 @@ def save_wav(item, take, takes):
     try:  # native PCM -> WAV (lossless, no re-encode)
         pcm = call(item, "pcm_44100")
         with wave.open(wav_path, "wb") as w:
-            w.setnchannels(1); w.setsampwidth(2); w.setframerate(44100); w.writeframes(pcm)
+            w.setnchannels(2); w.setsampwidth(2); w.setframerate(44100); w.writeframes(pcm)
         return wav_path
     except urllib.error.HTTPError as e:
         detail = e.read().decode(errors="replace")[:300]
